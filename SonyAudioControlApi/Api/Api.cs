@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SonyAudioControlApi
 {
-    public partial class Api
+    public sealed partial class Api
     {
         public DeviceDescriptor Device { get; private set; }
 

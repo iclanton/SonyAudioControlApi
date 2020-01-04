@@ -7,38 +7,51 @@ using System.Threading.Tasks;
 
 namespace SonyAudioControlApi
 {
-    public partial class Api
+    public sealed partial class Api
     {
+        /// <summary>
+        /// Gets the current power status of the device.
+        /// </summary>
+        /// <returns></returns>
         public async Task<GetPowerStatusResult> GetPowerStatusAsync()
         {
-            PowerStatusApiResponse apiResponse = await ApiRequest.MakeRequestAsync<PowerStatusApiResponse>(this.Device, ApiLib.System, ApiVersion.V11, "getPowerStatus");
-            return new GetPowerStatusResult(apiResponse);
+            return await ApiRequest.MakeRequestAsync<GetPowerStatusResult>(
+                this.Device,
+                ApiLib.System,
+                ApiVersion.V11,
+                "getPowerStatus"
+            );
         }
     }
 
-    public class GetPowerStatusResult
+    [DataContract]
+    public sealed class GetPowerStatusResult
     {
         public enum PowerStatus
         {
             /// <summary>
             /// The device is transitioning to the power-on state.
             /// </summary>
+            [EnumStringValue("activating")]
             Activating,
 
             /// <summary>
             /// The device is in the power-on state.
             /// </summary>
+            [EnumStringValue("active")]
             Active,
 
             /// <summary>
             /// The device is transitioning to the power-off state.
             /// </summary>
+            [EnumStringValue("shuttingDown")]
             ShuttingDown,
 
             /// <summary>
             /// The device is in the standby state. Network functions are active, and the device can switch to the
             /// power-on state via a network command. Not all products support standby, personalaudio products don't.
             /// </summary>
+            [EnumStringValue("standby")]
             Standby
         }
 
@@ -47,77 +60,27 @@ namespace SonyAudioControlApi
             /// <summary>
             /// The device is in its normal standby state.
             /// </summary>
+            [EnumStringValue("normalStandby")]
             NormalStandby,
 
             /// <summary>
             /// The device is in its quick-start standby state. The device can transition quickly to an active state.
             /// </summary>
+            [EnumStringValue("quickStartStandby")]
             QuickStartStandby
         }
 
         /// <summary>
         /// The current power status of the device
         /// </summary>
-        public PowerStatus Status { get; private set; }
+        [DataMember(Name = "status")]
+        public PowerStatus Status { get; set; }
 
         /// <summary>
         /// Additional information for the standby power state.
         /// If this value is null, then no additional information is available.
         /// </summary>
-        public PowerStandbyDetail? StandbyDetail { get; private set; }
-
-        internal GetPowerStatusResult(PowerStatusApiResponse apiResponse)
-        {
-            switch (apiResponse.Status)
-            {
-                case "activating":
-                    this.Status = PowerStatus.Activating;
-                    break;
-
-                case "active":
-                    this.Status = PowerStatus.Active;
-                    break;
-
-                case "shuttingDown":
-                    this.Status = PowerStatus.ShuttingDown;
-                    break;
-
-                case "standby":
-                    this.Status = PowerStatus.Standby;
-                    break;
-
-                default:
-                    throw new UnexpectedResponseException(nameof(apiResponse.Status), apiResponse.Status);
-            }
-
-            switch (apiResponse.StandbyDetail)
-            {
-                case null:
-                case "":
-                    this.StandbyDetail = null;
-                    break;
-
-                case "normalStandby":
-                    this.StandbyDetail = PowerStandbyDetail.NormalStandby;
-                    break;
-
-                case "quickStartStandby":
-                    this.StandbyDetail = PowerStandbyDetail.QuickStartStandby;
-                    break;
-
-                default:
-                    throw new UnexpectedResponseException(nameof(apiResponse.StandbyDetail), apiResponse.StandbyDetail);
-            }
-        }
-    }
-
-    [DataContract]
-    internal class PowerStatusApiResponse
-    {
-        [DataMember(Name = "status")]
-        public string Status { get; set; }
-
         [DataMember(Name = "standbyDetail")]
-        public string StandbyDetail { get; set; }
+        public PowerStandbyDetail? StandbyDetail { get; set; }
     }
 }
