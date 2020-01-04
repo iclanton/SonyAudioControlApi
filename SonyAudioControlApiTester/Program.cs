@@ -11,6 +11,7 @@ namespace SonyAudioControlApiTester
             Api api = new Api(new DeviceDescriptor() { Hostname = args[0], Type = DeviceDescriptor.DeviceType.SoundbarReceiver });
             var result1 = await api.GetPowerStatusAsync();
             var result2 = await api.GetCurrentExternalTerminalsStatusAsync();
+            var result3 = await api.GetCustomEqualizerSettingsAsync();
         }
     }
 }

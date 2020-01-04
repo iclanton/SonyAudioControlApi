@@ -79,7 +79,8 @@ namespace SonyAudioControlApi
             public object Error { get; set; }
 
             [JsonPropertyName("result")]
-            public TResponse[] Result { get; set; }
+            [SingleElementArrayConverter]
+            public TResponse Result { get; set; }
         }
 
         public static async Task<TResult> MakeRequestAsync<TResult>(DeviceDescriptor device, ApiLib lib, ApiVersion version, string method, object @params = null)
@@ -120,6 +121,10 @@ namespace SonyAudioControlApi
                     libName = "avContent";
                     break;
 
+                case ApiLib.Audio:
+                    libName = "audio";
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(lib));
             }
@@ -140,7 +145,7 @@ namespace SonyAudioControlApi
                     }
                     else
                     {
-                        return responseObject.Result[0];
+                        return responseObject.Result;
                     }
                 }
                 else

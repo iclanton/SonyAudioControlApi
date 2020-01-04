@@ -7,6 +7,7 @@ namespace SonyAudioControlApi
     internal enum ApiLib
     {
         System,
-        AvContent
+        AvContent,
+        Audio
     }
 }
