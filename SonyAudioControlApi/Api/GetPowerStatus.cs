@@ -87,11 +87,12 @@ namespace SonyAudioControlApi
                     break;
 
                 default:
-                    throw new UnexpectedResponseException("status", apiResponse.Status);
+                    throw new UnexpectedResponseException(nameof(apiResponse.Status), apiResponse.Status);
             }
 
             switch (apiResponse.StandbyDetail)
             {
+                case null:
                 case "":
                     this.StandbyDetail = null;
                     break;
@@ -105,7 +106,7 @@ namespace SonyAudioControlApi
                     break;
 
                 default:
-                    throw new UnexpectedResponseException("standbyDetail", apiResponse.StandbyDetail);
+                    throw new UnexpectedResponseException(nameof(apiResponse.StandbyDetail), apiResponse.StandbyDetail);
             }
         }
     }
