@@ -1,17 +1,18 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SonyAudioControlApi
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-    internal sealed class EnumStringValueAttribute : Attribute
+    internal sealed class EnumJsonStringValueAttribute : Attribute
     {
         public string StringValue { get; set; }
 
-        public EnumStringValueAttribute(string stringValue)
+        public EnumJsonStringValueAttribute(string stringValue)
         {
             if (stringValue is null)
             {
@@ -22,20 +23,39 @@ namespace SonyAudioControlApi
         }
     }
 
-    internal sealed class EnumConverter<TEnum> : JsonConverter where TEnum : struct
+    [AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
+    internal sealed class JsonEnumConverterAttribute : JsonConverterAttribute
     {
-        private static bool _mappingsHaveBeenInitialized = false;
-        private static Dictionary<string, TEnum> _stringToEnumMapping;
-        private static Dictionary<TEnum, string> _enumToStringMapping;
-
-        private static void initilizeMappings()
+        public override JsonConverter CreateConverter(Type typeToConvert)
         {
-            if (!EnumConverter<TEnum>._mappingsHaveBeenInitialized)
-            {
-                EnumConverter<TEnum>._enumToStringMapping = new Dictionary<TEnum, string>();
-                EnumConverter<TEnum>._stringToEnumMapping = new Dictionary<string, TEnum>();
+            return Activator.CreateInstance(typeof(EnumConverter<>).MakeGenericType(typeToConvert)) as JsonConverter;
+        }
+    }
 
-                Type type = typeof(TEnum);
+    internal sealed class EnumConverter<TEnum> : JsonConverter<TEnum> where TEnum : struct
+    {
+        private static Dictionary<Type, MappingConfiguration> _mappings = new Dictionary<Type, MappingConfiguration>();
+
+        private struct MappingConfiguration
+        {
+            public bool MappingIsValid { get; set; }
+            public Dictionary<string, TEnum> StringToEnumMapping { get; set; }
+            public Dictionary<TEnum, string> EnumToStringMapping { get; set; }
+        }
+
+
+        private static MappingConfiguration tryGetMappingForType(Type type)
+        {
+            if (!EnumConverter<TEnum>._mappings.ContainsKey(type))
+            {
+                MappingConfiguration mapping = new MappingConfiguration()
+                {
+                    MappingIsValid = true,
+                    EnumToStringMapping = new Dictionary<TEnum, string>(),
+                    StringToEnumMapping = new Dictionary<string, TEnum>()
+                };
+                EnumConverter<TEnum>._mappings[type] = mapping;
+
                 MemberInfo[] members = type.GetMembers();
 
                 foreach (MemberInfo member in members)
@@ -43,87 +63,82 @@ namespace SonyAudioControlApi
                     FieldInfo memberField = member as FieldInfo;
                     if (memberField != null && memberField.IsStatic && memberField.IsPublic)
                     {
-                        EnumStringValueAttribute attribute = member.GetCustomAttribute<EnumStringValueAttribute>();
+                        EnumJsonStringValueAttribute attribute = member.GetCustomAttribute<EnumJsonStringValueAttribute>();
                         if (attribute == null)
                         {
-                            throw new Exception($"Unable to initialize {type} mappings. {memberField.Name} is missing the EnumStringValueAttribute");
+                            // We've found an element without the attribute
+                            mapping.MappingIsValid = false;
                         }
                         else
                         {
                             TEnum valueInstance = Enum.Parse<TEnum>(memberField.Name);
-                            EnumConverter<TEnum>._enumToStringMapping.Add(valueInstance, attribute.StringValue);
-                            EnumConverter<TEnum>._stringToEnumMapping.Add(attribute.StringValue, valueInstance);
+                            mapping.EnumToStringMapping.Add(valueInstance, attribute.StringValue);
+                            mapping.StringToEnumMapping.Add(attribute.StringValue, valueInstance);
                         }
                     }
                 }
-
-                EnumConverter<TEnum>._mappingsHaveBeenInitialized = true;
             }
 
+            return EnumConverter<TEnum>._mappings[type];
         }
 
-        private static Dictionary<string, TEnum> stringToEnumMapping
+        private static MappingConfiguration getMappingForType(Type type)
         {
-            get
+            MappingConfiguration mapping = EnumConverter<TEnum>.tryGetMappingForType(type);
+            if (!mapping.MappingIsValid)
             {
-                EnumConverter<TEnum>.initilizeMappings();
-                return EnumConverter<TEnum>._stringToEnumMapping;
-            }
-        }
-
-        private static Dictionary<TEnum, string> enumToStringMapping
-        {
-            get
-            {
-                EnumConverter<TEnum>.initilizeMappings();
-                return EnumConverter<TEnum>._enumToStringMapping;
-            }
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(string);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (reader.ValueType == typeof(string))
-            {
-                return EnumConverter<TEnum>.stringToEnumMapping.GetValueOrDefault(reader.Value as string);
-            }
-            else if (reader.ValueType == typeof(string[]))
-            {
-                return (reader.Value as string[]).Select(EnumConverter<TEnum>.stringToEnumMapping.GetValueOrDefault).ToArray();
+                throw new Exception($"Unable to initialize {type} mapping. A member is missing the EnumStringValueAttribute");
             }
             else
             {
-                throw new JsonSerializationException($"Unable to deserialize {reader.ValueType} into {typeof(TEnum)}");
+                return mapping;
             }
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override bool CanConvert(Type type)
         {
-            TEnum? typedValue = value as TEnum?;
-            if (typedValue != null)
+            return tryGetMappingForType(type).MappingIsValid;
+        }
+
+        public override TEnum Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+        {
+            MappingConfiguration mapping = EnumConverter<TEnum>.getMappingForType(type);
+
+            if (reader.TokenType == JsonTokenType.String)
             {
-                writer.WriteValue(EnumConverter<TEnum>.enumToStringMapping[typedValue ?? default(TEnum)]);
+                return (TEnum)mapping.StringToEnumMapping.GetValueOrDefault(reader.GetString());
+            }
+            else if (reader.TokenType == JsonTokenType.StartArray)
+            {
+                throw new NotImplementedException();
             }
             else
             {
+                throw new JsonException($"Unable to deserialize {reader.TokenType} into {type}");
+            }
+        }
+
+        public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
+        {
+            Type valueType = value.GetType();
+            if (valueType.IsArray)
+            {
+                MappingConfiguration mapping = EnumConverter<TEnum>.getMappingForType(valueType.GetElementType());
                 TEnum[] typedValueArray = value as TEnum[];
                 if (typedValueArray != null)
                 {
                     writer.WriteStartArray();
-                    foreach (TEnum? valueElement in typedValueArray)
+                    foreach (TEnum valueElement in typedValueArray)
                     {
-                        writer.WriteValue(EnumConverter<TEnum>.enumToStringMapping[valueElement ?? default(TEnum)]);
+                        writer.WriteStringValue(mapping.EnumToStringMapping[valueElement]);
                     }
                     writer.WriteEndArray();
                 }
-                else
-                {
-                    throw new JsonSerializationException($"Unable to serialize {value} of type {typeof(TEnum)} into string");
-                }
+            }
+            else
+            {
+                MappingConfiguration mapping = EnumConverter<TEnum>.getMappingForType(valueType);
+                writer.WriteStringValue(mapping.EnumToStringMapping[value]);
             }
         }
     }

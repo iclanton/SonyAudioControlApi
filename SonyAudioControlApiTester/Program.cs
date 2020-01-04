@@ -8,8 +8,9 @@ namespace SonyAudioControlApiTester
     {
         static async Task Main(string[] args)
         {
-            Api api = new Api(new DeviceDescriptor() { Hostname = "[IP_ADDR]", Type = DeviceDescriptor.DeviceType.SoundbarReceiver });
-            var powerStatus = await api.GetPowerStatusAsync();
+            Api api = new Api(new DeviceDescriptor() { Hostname = args[0], Type = DeviceDescriptor.DeviceType.SoundbarReceiver });
+            var result1 = await api.GetPowerStatusAsync();
+            var result2 = await api.GetCurrentExternalTerminalsStatusAsync();
         }
     }
 }

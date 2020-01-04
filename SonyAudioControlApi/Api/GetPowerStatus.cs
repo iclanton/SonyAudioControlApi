@@ -1,8 +1,4 @@
-﻿using SonyAudioControlApi.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SonyAudioControlApi
@@ -12,7 +8,6 @@ namespace SonyAudioControlApi
         /// <summary>
         /// Gets the current power status of the device.
         /// </summary>
-        /// <returns></returns>
         public async Task<GetPowerStatusResult> GetPowerStatusAsync()
         {
             return await ApiRequest.MakeRequestAsync<GetPowerStatusResult>(
@@ -24,63 +19,64 @@ namespace SonyAudioControlApi
         }
     }
 
-    [DataContract]
     public sealed class GetPowerStatusResult
     {
+        [JsonEnumConverter]
         public enum PowerStatus
         {
             /// <summary>
             /// The device is transitioning to the power-on state.
             /// </summary>
-            [EnumStringValue("activating")]
+            [EnumJsonStringValue("activating")]
             Activating,
 
             /// <summary>
             /// The device is in the power-on state.
             /// </summary>
-            [EnumStringValue("active")]
+            [EnumJsonStringValue("active")]
             Active,
 
             /// <summary>
             /// The device is transitioning to the power-off state.
             /// </summary>
-            [EnumStringValue("shuttingDown")]
+            [EnumJsonStringValue("shuttingDown")]
             ShuttingDown,
 
             /// <summary>
             /// The device is in the standby state. Network functions are active, and the device can switch to the
             /// power-on state via a network command. Not all products support standby, personalaudio products don't.
             /// </summary>
-            [EnumStringValue("standby")]
+            [EnumJsonStringValue("standby")]
             Standby
         }
 
+        [JsonEnumConverter]
         public enum PowerStandbyDetail
         {
             /// <summary>
             /// The device is in its normal standby state.
             /// </summary>
-            [EnumStringValue("normalStandby")]
+            [EnumJsonStringValue("normalStandby")]
             NormalStandby,
 
             /// <summary>
             /// The device is in its quick-start standby state. The device can transition quickly to an active state.
             /// </summary>
-            [EnumStringValue("quickStartStandby")]
+            [EnumJsonStringValue("quickStartStandby")]
             QuickStartStandby
         }
 
         /// <summary>
         /// The current power status of the device
         /// </summary>
-        [DataMember(Name = "status")]
+        [JsonPropertyName("status")]
         public PowerStatus Status { get; set; }
 
         /// <summary>
         /// Additional information for the standby power state.
         /// If this value is null, then no additional information is available.
         /// </summary>
-        [DataMember(Name = "standbyDetail")]
+        [JsonPropertyName("standbyDetail")]
         public PowerStandbyDetail? StandbyDetail { get; set; }
     }
 }
