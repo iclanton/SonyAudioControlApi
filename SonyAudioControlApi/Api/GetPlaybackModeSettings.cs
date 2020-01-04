@@ -9,13 +9,16 @@ namespace SonyAudioControlApi
         /// Get the current playback mode settings. Not all settings are valid for all products.
         /// Use "" for the target to get the valid settings for the current product.
         /// </summary>
-        /// <param name="target">The name of the playback mode setting to get.</param>
-        /// <param name="uri">If a device supports multiple sources for the setting,
+        /// <param name="target">
+        /// The name of the playback mode setting to get.
+        /// </param>
+        /// <param name="uri">
+        /// If a device supports multiple sources for the setting,
         /// include the URI of the specific source for which to get information. For more
         /// information about the URI structure, see the Device Resource URI page (https://developer.sony.com/develop/audio-control-api/api-references/device-uri).
         /// If this is null or "" is set, it means all sources for the mode.
         /// </param>
-        public async Task<PlaybackModeSettingsResult[]> GetPlaybackModeSettings(
+        public async Task<PlaybackModeSettingsResult[]> GetPlaybackModeSettingsAsync(
             PlaybackModeSettingsResult.PlaybackTarget target = PlaybackModeSettingsResult.PlaybackTarget.AllTargets,
             string uri = null
         )

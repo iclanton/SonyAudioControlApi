@@ -9,7 +9,7 @@ namespace SonyAudioControlApi
         /// This API provides information of WebAPI interface provided by the server.
         /// This API must not include private information.
         /// </summary>
-        public async Task<InterfaceInformationResult> GetInterfaceInformation()
+        public async Task<InterfaceInformationResult> GetInterfaceInformationAsync()
         {
             return await ApiRequest.MakeRequestAsync<InterfaceInformationResult>(
                 this.Device,
