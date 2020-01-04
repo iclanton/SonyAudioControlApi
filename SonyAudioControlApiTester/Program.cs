@@ -13,6 +13,7 @@ namespace SonyAudioControlApiTester
             var result2 = await api.GetCurrentExternalTerminalsStatusAsync();
             var result3 = await api.GetCustomEqualizerSettingsAsync();
             var result4 = await api.GetInterfaceInformation();
+            var result5 = await api.GetPlaybackModeSettings();
         }
     }
 }
