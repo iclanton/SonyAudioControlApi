@@ -8,9 +8,9 @@ namespace SonyAudioControlApi
         /// <summary>
         /// Gets the current power status of the device.
         /// </summary>
-        public async Task<GetPowerStatusResult> GetPowerStatusAsync()
+        public async Task<PowerStatusResult> GetPowerStatusAsync()
         {
-            return await ApiRequest.MakeRequestAsync<GetPowerStatusResult>(
+            return await ApiRequest.MakeRequestAsync<PowerStatusResult>(
                 this.Device,
                 ApiLib.System,
                 ApiVersion.V11,
@@ -19,7 +19,7 @@ namespace SonyAudioControlApi
         }
     }
 
-    public sealed class GetPowerStatusResult
+    public sealed class PowerStatusResult
     {
         [JsonEnumConverter]
         public enum PowerStatus
