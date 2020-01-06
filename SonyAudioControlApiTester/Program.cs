@@ -15,6 +15,7 @@ namespace SonyAudioControlApiTester
             var result4 = await api.GetInterfaceInformationAsync();
             var result5 = await api.GetPlaybackModeSettingsAsync();
             var result6 = await api.GetPlayingContentInfoAsync();
+            var result7 = await api.GetVolumeInformationAsync();
         }
     }
 }
