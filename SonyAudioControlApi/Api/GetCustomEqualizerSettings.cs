@@ -10,8 +10,7 @@ namespace SonyAudioControlApi
         /// </summary>
         public async Task<CustomEqualizerSettingsResult[]> GetCustomEqualizerSettingsAsync(CustomEqualizerSettingsResult.EqualizerTarget target = CustomEqualizerSettingsResult.EqualizerTarget.AllTargets)
         {
-            return await ApiRequest.MakeRequestAsync<CustomEqualizerSettingsResult[]>(
-                this.Device,
+            return await this.makeRequestAsync<CustomEqualizerSettingsResult[]>(
                 ApiLib.Audio,
                 ApiVersion.V10,
                 "getCustomEqualizerSettings",

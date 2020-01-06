@@ -19,8 +19,7 @@ namespace SonyAudioControlApi
         /// </remarks>
         public async Task<PlayingContentInfoResult[]> GetPlayingContentInfoAsync(string output = null)
         {
-            return await ApiRequest.MakeRequestAsync<PlayingContentInfoResult[]>(
-                this.Device,
+            return await this.makeRequestAsync<PlayingContentInfoResult[]>(
                 ApiLib.AvContent,
                 ApiVersion.V12,
                 "getPlayingContentInfo",

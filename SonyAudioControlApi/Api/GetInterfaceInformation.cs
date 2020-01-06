@@ -11,8 +11,7 @@ namespace SonyAudioControlApi
         /// </summary>
         public async Task<InterfaceInformationResult> GetInterfaceInformationAsync()
         {
-            return await ApiRequest.MakeRequestAsync<InterfaceInformationResult>(
-                this.Device,
+            return await this.makeRequestAsync<InterfaceInformationResult>(
                 ApiLib.System,
                 ApiVersion.V10,
                 "getInterfaceInformation"

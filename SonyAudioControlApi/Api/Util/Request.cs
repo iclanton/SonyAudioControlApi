@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace SonyAudioControlApi
 {
-    internal static class ApiRequest
+    public sealed partial class Api
     {
-        private const int RECEIVER_SOUNDBAR_PORT = 10000;
-        private const int WIRELESS_SPEAKER_PORT = 54480;
-
         private class RequestObject
         {
             private static int idCounter = 1;
@@ -26,7 +23,9 @@ namespace SonyAudioControlApi
             public object[] Params { get; private set; }
 
             [JsonPropertyName("version")]
-            public string Version { get; private set; }
+            public ApiVersion Version { get; private set; }
+
+            public RequestObject() { }
 
             public RequestObject(string method, ApiVersion version, object @params)
             {
@@ -53,28 +52,27 @@ namespace SonyAudioControlApi
                     this.Params = new object[] { @params };
                 }
 
-                switch (version)
+                this.Version = version;
+            }
+
+            [JsonIgnore]
+            public string Serialized
+            {
+                get
                 {
-                    case ApiVersion.V10:
-                        this.Version = "1.0";
-                        break;
-                    case ApiVersion.V11:
-                        this.Version = "1.1";
-                        break;
-                    case ApiVersion.V12:
-                        this.Version = "1.2";
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(version));
+                    return JsonSerializer.Serialize(this);
                 }
             }
         }
 
-        private class ResponseObject<TResponse>
+        private class SlimResponseObject
         {
             [JsonPropertyName("id")]
             public int Id { get; set; }
+        }
 
+        private class ResponseObject<TResponse> : SlimResponseObject
+        {
             [JsonPropertyName("error")]
             public object Error { get; set; }
 
@@ -83,11 +81,11 @@ namespace SonyAudioControlApi
             public TResponse Result { get; set; }
         }
 
-        public static async Task<TResult> MakeRequestAsync<TResult>(DeviceDescriptor device, ApiLib lib, ApiVersion version, string method, object @params = null)
+        private async Task<TResult> makeRequestAsync<TResult>(ApiLib lib, ApiVersion version, string method, object @params = null)
         {
-            if (device is null)
+            if (this.Device is null)
             {
-                throw new ArgumentNullException(nameof(device));
+                throw new ArgumentNullException(nameof(this.Device));
             }
 
             if (string.IsNullOrEmpty(method))
@@ -97,41 +95,10 @@ namespace SonyAudioControlApi
 
             RequestObject requestObject = new RequestObject(method, version, @params);
 
-            int port;
-            switch (device.Type)
-            {
-                case DeviceDescriptor.DeviceType.SoundbarReceiver:
-                    port = RECEIVER_SOUNDBAR_PORT;
-                    break;
-                case DeviceDescriptor.DeviceType.WirelessSpeaker:
-                    port = WIRELESS_SPEAKER_PORT;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(device.Type));
-            }
+            string libName = Utilities.GetApiLibName(lib);
+            string requestUrl = $"http://{this.Device.Hostname}:{this.Device.Port}/sony/{libName}";
 
-            string libName;
-            switch (lib)
-            {
-                case ApiLib.System:
-                    libName = "system";
-                    break;
-
-                case ApiLib.AvContent:
-                    libName = "avContent";
-                    break;
-
-                case ApiLib.Audio:
-                    libName = "audio";
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(lib));
-            }
-
-            string requestUrl = $"http://{device.Hostname}:{port}/sony/{libName}";
-
-            HttpContent httpContent = new StringContent(JsonSerializer.Serialize(requestObject), Encoding.UTF8, "application/json");
+            HttpContent httpContent = new StringContent(requestObject.Serialized, Encoding.UTF8, "application/json");
             using (HttpClient httpClient = new HttpClient())
             {
                 HttpResponseMessage response = await httpClient.PostAsync(requestUrl, httpContent);

@@ -23,8 +23,7 @@ namespace SonyAudioControlApi
             string uri = null
         )
         {
-            return await ApiRequest.MakeRequestAsync<PlaybackModeSettingsResult[]>(
-                this.Device,
+            return await this.makeRequestAsync<PlaybackModeSettingsResult[]>(
                 ApiLib.AvContent,
                 ApiVersion.V10,
                 "getPlaybackModeSettings",

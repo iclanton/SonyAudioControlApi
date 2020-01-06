@@ -12,8 +12,7 @@ namespace SonyAudioControlApi
         /// </summary>
         public async Task<CurrentExternalTerminalsStatusResult[]> GetCurrentExternalTerminalsStatusAsync()
         {
-            return await ApiRequest.MakeRequestAsync<CurrentExternalTerminalsStatusResult[]>(
-                this.Device,
+            return await this.makeRequestAsync<CurrentExternalTerminalsStatusResult[]>(
                 ApiLib.AvContent,
                 ApiVersion.V10,
                 "getCurrentExternalTerminalsStatus"

@@ -10,8 +10,7 @@ namespace SonyAudioControlApi
         /// </summary>
         public async Task<PowerStatusResult> GetPowerStatusAsync()
         {
-            return await ApiRequest.MakeRequestAsync<PowerStatusResult>(
-                this.Device,
+            return await this.makeRequestAsync<PowerStatusResult>(
                 ApiLib.System,
                 ApiVersion.V11,
                 "getPowerStatus"
