@@ -16,6 +16,18 @@ namespace SonyAudioControlApiTester
             var result5 = await api.GetPlaybackModeSettingsAsync();
             var result6 = await api.GetPlayingContentInfoAsync();
             var result7 = await api.GetVolumeInformationAsync();
+
+            api.InitializeNotifications();
+
+            api.OnVolumeInformationNotification += (DeviceDescriptor sender, VolumeInformationResult[] result) =>
+            {
+                foreach (VolumeInformationResult volume in result)
+                {
+                    Console.WriteLine($"Volume ({volume.Output}): {volume.Volume}");
+                }
+            };
+
+            Console.ReadLine();
         }
     }
 }
