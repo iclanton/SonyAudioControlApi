@@ -15,9 +15,9 @@ namespace SonyAudioControlApi
     {
         public delegate void NotificationEventHandler<TResult>(DeviceDescriptor sender, TResult result);
 
-        public event NotificationEventHandler<CurrentExternalTerminalsStatusResult> OnExternalTerminalStatusNotification;
+        public event NotificationEventHandler<CurrentExternalTerminalsStatusResult[]> OnExternalTerminalStatusNotification;
         public event NotificationEventHandler<PlayingContentInfoResult> OnPlayingContentInfoNotification;
-        public event NotificationEventHandler<PowerStatusResult> OnPowerStatusNotification;
+        public event NotificationEventHandler<PowerStatusResult[]> OnPowerStatusNotification;
         public event NotificationEventHandler<VolumeInformationResult[]> OnVolumeInformationNotification;
 
         private class NotificationManager
