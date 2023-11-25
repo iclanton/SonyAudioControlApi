@@ -28,13 +28,16 @@ namespace SonyAudioControlApi
     {
         public override JsonConverter CreateConverter(Type typeToConvert)
         {
-            return Activator.CreateInstance(typeof(EnumConverter<>).MakeGenericType(typeToConvert)) as JsonConverter;
+            return Activator.CreateInstance(typeof(EnumConverter<>).MakeGenericType(typeToConvert))
+                as JsonConverter;
         }
     }
 
-    internal sealed class EnumConverter<TEnum> : JsonConverter<TEnum> where TEnum : struct
+    internal sealed class EnumConverter<TEnum> : JsonConverter<TEnum>
+        where TEnum : struct
     {
-        private static Dictionary<Type, MappingConfiguration> _mappings = new Dictionary<Type, MappingConfiguration>();
+        private static Dictionary<Type, MappingConfiguration> _mappings =
+            new Dictionary<Type, MappingConfiguration>();
 
         private struct MappingConfiguration
         {
@@ -42,7 +45,6 @@ namespace SonyAudioControlApi
             public Dictionary<string, TEnum> StringToEnumMapping { get; set; }
             public Dictionary<TEnum, string> EnumToStringMapping { get; set; }
         }
-
 
         private static MappingConfiguration tryGetMappingForType(Type type)
         {
@@ -63,7 +65,8 @@ namespace SonyAudioControlApi
                     FieldInfo memberField = member as FieldInfo;
                     if (memberField != null && memberField.IsStatic && memberField.IsPublic)
                     {
-                        EnumJsonStringValueAttribute attribute = member.GetCustomAttribute<EnumJsonStringValueAttribute>();
+                        EnumJsonStringValueAttribute attribute =
+                            member.GetCustomAttribute<EnumJsonStringValueAttribute>();
                         if (attribute == null)
                         {
                             // We've found an element without the attribute
@@ -87,7 +90,9 @@ namespace SonyAudioControlApi
             MappingConfiguration mapping = EnumConverter<TEnum>.tryGetMappingForType(type);
             if (!mapping.MappingIsValid)
             {
-                throw new Exception($"Unable to initialize {type} mapping. A member is missing the EnumStringValueAttribute");
+                throw new Exception(
+                    $"Unable to initialize {type} mapping. A member is missing the EnumStringValueAttribute"
+                );
             }
             else
             {
@@ -100,7 +105,11 @@ namespace SonyAudioControlApi
             return tryGetMappingForType(type).MappingIsValid;
         }
 
-        public override TEnum Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+        public override TEnum Read(
+            ref Utf8JsonReader reader,
+            Type type,
+            JsonSerializerOptions options
+        )
         {
             MappingConfiguration mapping = EnumConverter<TEnum>.getMappingForType(type);
 
@@ -118,12 +127,18 @@ namespace SonyAudioControlApi
             }
         }
 
-        public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            TEnum value,
+            JsonSerializerOptions options
+        )
         {
             Type valueType = value.GetType();
             if (valueType.IsArray)
             {
-                MappingConfiguration mapping = EnumConverter<TEnum>.getMappingForType(valueType.GetElementType());
+                MappingConfiguration mapping = EnumConverter<TEnum>.getMappingForType(
+                    valueType.GetElementType()
+                );
                 TEnum[] typedValueArray = value as TEnum[];
                 if (typedValueArray != null)
                 {

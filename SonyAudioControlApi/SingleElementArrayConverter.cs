@@ -9,7 +9,9 @@ namespace SonyAudioControlApi
     {
         public override JsonConverter CreateConverter(Type typeToConvert)
         {
-            return Activator.CreateInstance(typeof(SingleElementArrayConverter<>).MakeGenericType(typeToConvert)) as JsonConverter;
+            return Activator.CreateInstance(
+                    typeof(SingleElementArrayConverter<>).MakeGenericType(typeToConvert)
+                ) as JsonConverter;
         }
     }
 
@@ -20,7 +22,11 @@ namespace SonyAudioControlApi
             return true;
         }
 
-        public override TElement Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+        public override TElement Read(
+            ref Utf8JsonReader reader,
+            Type type,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType == JsonTokenType.StartArray)
             {
@@ -29,7 +35,9 @@ namespace SonyAudioControlApi
                 reader.Read();
                 if (reader.TokenType != JsonTokenType.EndArray)
                 {
-                    throw new JsonException($"Expected to find a single-eleemt array, but found an unexpected element: {reader.TokenType}");
+                    throw new JsonException(
+                        $"Expected to find a single-eleemt array, but found an unexpected element: {reader.TokenType}"
+                    );
                 }
                 else
                 {
@@ -42,7 +50,11 @@ namespace SonyAudioControlApi
             }
         }
 
-        public override void Write(Utf8JsonWriter writer, TElement value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            TElement value,
+            JsonSerializerOptions options
+        )
         {
             writer.WriteStartArray();
             JsonSerializer.Serialize<TElement>(value, options);

@@ -13,7 +13,10 @@ namespace SonyAudioControlApi
 {
     public sealed partial class Api
     {
-        public delegate void NotificationEventHandler<TResult>(DeviceDescriptor sender, TResult result);
+        public delegate void NotificationEventHandler<TResult>(
+            DeviceDescriptor sender,
+            TResult result
+        );
 
         public event NotificationEventHandler<CurrentExternalTerminalsStatusResult[]> OnExternalTerminalStatusNotification;
         public event NotificationEventHandler<PlayingContentInfoResult> OnPlayingContentInfoNotification;
@@ -26,7 +29,10 @@ namespace SonyAudioControlApi
             private ApiLibNotificationManager avContentNotificationManager;
             private ApiLibNotificationManager systemNotificationManager;
 
-            private Dictionary<ApiLib, Dictionary<ApiVersion, Dictionary<string, EventInfo>>> handlers;
+            private Dictionary<
+                ApiLib,
+                Dictionary<ApiVersion, Dictionary<string, EventInfo>>
+            > handlers;
 
             public DeviceDescriptor Device { get; private set; }
 
@@ -39,18 +45,37 @@ namespace SonyAudioControlApi
 
                 this.initializeSubscriptions();
 
-                this.audioNotificationManager = new ApiLibNotificationManager(this.Device, ApiLib.Audio, this.getSubscriptionsForLib(ApiLib.Audio));
-                this.avContentNotificationManager = new ApiLibNotificationManager(this.Device, ApiLib.AvContent, this.getSubscriptionsForLib(ApiLib.AvContent));
-                this.systemNotificationManager = new ApiLibNotificationManager(this.Device, ApiLib.System, this.getSubscriptionsForLib(ApiLib.System));
+                this.audioNotificationManager = new ApiLibNotificationManager(
+                    this.Device,
+                    ApiLib.Audio,
+                    this.getSubscriptionsForLib(ApiLib.Audio)
+                );
+                this.avContentNotificationManager = new ApiLibNotificationManager(
+                    this.Device,
+                    ApiLib.AvContent,
+                    this.getSubscriptionsForLib(ApiLib.AvContent)
+                );
+                this.systemNotificationManager = new ApiLibNotificationManager(
+                    this.Device,
+                    ApiLib.System,
+                    this.getSubscriptionsForLib(ApiLib.System)
+                );
 
                 this.audioNotificationManager.OnNotification += this.OnNotification;
                 this.avContentNotificationManager.OnNotification += this.OnNotification;
                 this.systemNotificationManager.OnNotification += this.OnNotification;
             }
 
-            private void OnNotification(ApiLibNotificationManager sender, string method, ApiVersion version, string serializedParams)
+            private void OnNotification(
+                ApiLibNotificationManager sender,
+                string method,
+                ApiVersion version,
+                string serializedParams
+            )
             {
-                Dictionary<ApiVersion, Dictionary<string, EventInfo>> libDelegates = this.handlers[sender.Lib];
+                Dictionary<ApiVersion, Dictionary<string, EventInfo>> libDelegates = this.handlers[
+                    sender.Lib
+                ];
                 if (libDelegates != null)
                 {
                     Dictionary<string, EventInfo> versionDelegates = libDelegates[version];
@@ -60,9 +85,19 @@ namespace SonyAudioControlApi
                         if (eventInfo != null)
                         {
                             // We expect this to be the argument in NotificationEventHandler<>
-                            Type genericArgumentType = eventInfo.EventHandlerType.GenericTypeArguments[0];
-                            dynamic notificationResult = JsonSerializer.Deserialize(serializedParams, genericArgumentType);
-                            FieldInfo eventFieldInfo = eventInfo.DeclaringType.GetField(eventInfo.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+                            Type genericArgumentType = eventInfo
+                                .EventHandlerType
+                                .GenericTypeArguments[0];
+                            dynamic notificationResult = JsonSerializer.Deserialize(
+                                serializedParams,
+                                genericArgumentType
+                            );
+                            FieldInfo eventFieldInfo = eventInfo
+                                .DeclaringType
+                                .GetField(
+                                    eventInfo.Name,
+                                    BindingFlags.Instance | BindingFlags.NonPublic
+                                );
                             dynamic eventField = eventFieldInfo.GetValue(this.Api);
                             try
                             {
@@ -90,39 +125,67 @@ namespace SonyAudioControlApi
             {
                 Type apiType = this.Api.GetType();
 
-                this.handlers = new Dictionary<ApiLib, Dictionary<ApiVersion, Dictionary<string, EventInfo>>>()
+                this.handlers = new Dictionary<
+                    ApiLib,
+                    Dictionary<ApiVersion, Dictionary<string, EventInfo>>
+                >()
                 {
                     [ApiLib.Audio] = new Dictionary<ApiVersion, Dictionary<string, EventInfo>>()
                     {
                         [ApiVersion.V10] = new Dictionary<string, EventInfo>()
                         {
-                            ["notifyVolumeInformation"] = apiType.GetEvent(nameof(this.Api.OnVolumeInformationNotification))
+                            ["notifyVolumeInformation"] = apiType.GetEvent(
+                                nameof(this.Api.OnVolumeInformationNotification)
+                            )
                         }
                     },
                     [ApiLib.AvContent] = new Dictionary<ApiVersion, Dictionary<string, EventInfo>>()
                     {
                         [ApiVersion.V10] = new Dictionary<string, EventInfo>()
                         {
-                            ["notifyPlayingContentInfo"] = apiType.GetEvent(nameof(this.Api.OnPlayingContentInfoNotification)),
-                            ["notifyExternalTerminalStatus"] = apiType.GetEvent(nameof(this.Api.OnExternalTerminalStatusNotification))
+                            ["notifyPlayingContentInfo"] = apiType.GetEvent(
+                                nameof(this.Api.OnPlayingContentInfoNotification)
+                            ),
+                            ["notifyExternalTerminalStatus"] = apiType.GetEvent(
+                                nameof(this.Api.OnExternalTerminalStatusNotification)
+                            )
                         }
                     },
                     [ApiLib.System] = new Dictionary<ApiVersion, Dictionary<string, EventInfo>>()
                     {
                         [ApiVersion.V10] = new Dictionary<string, EventInfo>()
                         {
-                            ["notifyPowerStatus"] = apiType.GetEvent(nameof(this.Api.OnPowerStatusNotification))
+                            ["notifyPowerStatus"] = apiType.GetEvent(
+                                nameof(this.Api.OnPowerStatusNotification)
+                            )
                         }
                     }
                 };
             }
 
-            private IEnumerable<ApiLibNotificationManager.NotificationSubscription> getSubscriptionsForLib(ApiLib lib)
+            private IEnumerable<ApiLibNotificationManager.NotificationSubscription> getSubscriptionsForLib(
+                ApiLib lib
+            )
             {
-                Dictionary<ApiVersion, Dictionary<string, EventInfo>> libDelegates = this.handlers[lib];
+                Dictionary<ApiVersion, Dictionary<string, EventInfo>> libDelegates = this.handlers[
+                    lib
+                ];
                 if (libDelegates != null)
                 {
-                    return libDelegates.SelectMany((versionElement) => versionElement.Value.Keys.Select((methodElement) => new ApiLibNotificationManager.NotificationSubscription() { Name = methodElement, Version = versionElement.Key }));
+                    return libDelegates.SelectMany(
+                        (versionElement) =>
+                            versionElement
+                                .Value
+                                .Keys
+                                .Select(
+                                    (methodElement) =>
+                                        new ApiLibNotificationManager.NotificationSubscription()
+                                        {
+                                            Name = methodElement,
+                                            Version = versionElement.Key
+                                        }
+                                )
+                    );
                 }
                 else
                 {
@@ -135,12 +198,18 @@ namespace SonyAudioControlApi
         {
             public class NotificationSubscription
             {
-                public static bool operator ==(NotificationSubscription obj1, NotificationSubscription obj2)
+                public static bool operator ==(
+                    NotificationSubscription obj1,
+                    NotificationSubscription obj2
+                )
                 {
                     return obj1.Equals(obj2);
                 }
 
-                public static bool operator !=(NotificationSubscription obj1, NotificationSubscription obj2)
+                public static bool operator !=(
+                    NotificationSubscription obj1,
+                    NotificationSubscription obj2
+                )
                 {
                     return !obj1.Equals(obj2);
                 }
@@ -153,9 +222,9 @@ namespace SonyAudioControlApi
 
                 public override bool Equals(object obj)
                 {
-                    return obj is NotificationSubscription subscription &&
-                           this.Name == subscription.Name &&
-                           this.Version == subscription.Version;
+                    return obj is NotificationSubscription subscription
+                        && this.Name == subscription.Name
+                        && this.Version == subscription.Version;
                 }
 
                 public override int GetHashCode()
@@ -178,15 +247,16 @@ namespace SonyAudioControlApi
                 public NotificationRequest(
                     NotificationSubscription[] enabled = null,
                     NotificationSubscription[] disabled = null
-                ) : base(
-                    "switchNotifications",
-                    ApiVersion.V10,
-                    new NotificationParms()
-                    {
-                        Enabled = enabled ?? new NotificationSubscription[0],
-                        Disabled = disabled ?? new NotificationSubscription[0]
-                    }
-                ) { }
+                )
+                    : base(
+                        "switchNotifications",
+                        ApiVersion.V10,
+                        new NotificationParms()
+                        {
+                            Enabled = enabled ?? new NotificationSubscription[0],
+                            Disabled = disabled ?? new NotificationSubscription[0]
+                        }
+                    ) { }
             }
 
             private class NotificationObject
@@ -201,19 +271,22 @@ namespace SonyAudioControlApi
                 public ApiVersion Version { get; set; }
             }
 
-
             private WebsocketClient websocket;
 
             private HashSet<NotificationSubscription> subscriptions;
 
             public delegate void InitializedEventHandler(ApiLibNotificationManager sender);
 
-            public delegate void MessageEventHandler(ApiLibNotificationManager sender, string method, ApiVersion version, string serializedParams);
+            public delegate void MessageEventHandler(
+                ApiLibNotificationManager sender,
+                string method,
+                ApiVersion version,
+                string serializedParams
+            );
 
             public DeviceDescriptor Device { get; private set; }
 
             public ApiLib Lib { get; private set; }
-
 
             public bool IsInitialized { get; private set; }
 
@@ -225,7 +298,11 @@ namespace SonyAudioControlApi
                 await this.initializeWebsocketAsync();
             }
 
-            public ApiLibNotificationManager(DeviceDescriptor device, ApiLib lib, IEnumerable<NotificationSubscription> subscriptions)
+            public ApiLibNotificationManager(
+                DeviceDescriptor device,
+                ApiLib lib,
+                IEnumerable<NotificationSubscription> subscriptions
+            )
             {
                 this.Device = device;
                 this.Lib = lib;
@@ -247,7 +324,11 @@ namespace SonyAudioControlApi
                     }
                 }
 
-                this.websocket = new WebsocketClient(new Uri($"ws://{this.Device.Hostname}:{this.Device.Port}/sony/{Utilities.GetApiLibName(this.Lib)}"));
+                this.websocket = new WebsocketClient(
+                    new Uri(
+                        $"ws://{this.Device.Hostname}:{this.Device.Port}/sony/{Utilities.GetApiLibName(this.Lib)}"
+                    )
+                );
                 this.websocket.ReconnectTimeout = TimeSpan.FromSeconds(30);
 
                 // Send an empty switchNotifications to get the available notification types
@@ -263,91 +344,128 @@ namespace SonyAudioControlApi
                     this.websocket.Send(subscriptionsRequest.Serialized);
                 };
 
-                this.websocket.ReconnectionHappened.Subscribe((message) =>
-                {
-                    Debug.WriteLine($"NOTIFY ({this.Lib}): subscription reconnected ({message})");
-                    //initialSubscribe();
-                });
-
-                this.websocket.MessageReceived.Subscribe(async (message) =>
-                {
-                    await Task.Run(() =>
-                    {
-                        Debug.WriteLine($"NOTIFY ({this.Lib}): message received ({message})");
-
-                        SlimResponseObject basicResponse = JsonSerializer.Deserialize<SlimResponseObject>(message.Text);
-                        if (basicResponse.Id == subscriptionsRequest?.Id)
+                this.websocket
+                    .ReconnectionHappened
+                    .Subscribe(
+                        (message) =>
                         {
-                            // This is the response to a notification subscription
-                            ResponseObject<NotificationParms> response = JsonSerializer.Deserialize<ResponseObject<NotificationParms>>(message.Text);
+                            Debug.WriteLine(
+                                $"NOTIFY ({this.Lib}): subscription reconnected ({message})"
+                            );
+                            //initialSubscribe();
+                        }
+                    );
 
-                            // Let's find out if any subscriptions are missing
-                            bool anySubscriptionsMissing = this.subscriptions.Any((subscription) =>
+                this.websocket
+                    .MessageReceived
+                    .Subscribe(
+                        async (message) =>
+                        {
+                            await Task.Run(() =>
                             {
-                                bool subscribed = response.Result.Enabled.Contains(subscription);
-                                bool available = !subscribed && response.Result.Disabled.Contains(subscription);
-                                return !subscribed && available;
-                            });
-                            if (anySubscriptionsMissing) {
-                                HashSet<NotificationSubscription> availableSubscriptions = new HashSet<NotificationSubscription>();
-                                availableSubscriptions.UnionWith(response.Result.Disabled);
-                                availableSubscriptions.UnionWith(response.Result.Enabled);
+                                Debug.WriteLine(
+                                    $"NOTIFY ({this.Lib}): message received ({message})"
+                                );
 
-                                List<NotificationSubscription> enabled = new List<NotificationSubscription>();
-                                List<NotificationSubscription> disabled = new List<NotificationSubscription>();
-                                foreach (NotificationSubscription available in availableSubscriptions)
+                                SlimResponseObject basicResponse =
+                                    JsonSerializer.Deserialize<SlimResponseObject>(message.Text);
+                                if (basicResponse.Id == subscriptionsRequest?.Id)
                                 {
-                                    if (this.subscriptions.Contains(available))
+                                    // This is the response to a notification subscription
+                                    ResponseObject<NotificationParms> response =
+                                        JsonSerializer.Deserialize<
+                                            ResponseObject<NotificationParms>
+                                        >(message.Text);
+
+                                    // Let's find out if any subscriptions are missing
+                                    bool anySubscriptionsMissing = this.subscriptions.Any(
+                                        (subscription) =>
+                                        {
+                                            bool subscribed = response
+                                                .Result
+                                                .Enabled
+                                                .Contains(subscription);
+                                            bool available =
+                                                !subscribed
+                                                && response.Result.Disabled.Contains(subscription);
+                                            return !subscribed && available;
+                                        }
+                                    );
+                                    if (anySubscriptionsMissing)
                                     {
-                                        enabled.Add(available);
+                                        HashSet<NotificationSubscription> availableSubscriptions =
+                                            new HashSet<NotificationSubscription>();
+                                        availableSubscriptions.UnionWith(response.Result.Disabled);
+                                        availableSubscriptions.UnionWith(response.Result.Enabled);
+
+                                        List<NotificationSubscription> enabled =
+                                            new List<NotificationSubscription>();
+                                        List<NotificationSubscription> disabled =
+                                            new List<NotificationSubscription>();
+                                        foreach (
+                                            NotificationSubscription available in availableSubscriptions
+                                        )
+                                        {
+                                            if (this.subscriptions.Contains(available))
+                                            {
+                                                enabled.Add(available);
+                                            }
+                                            else
+                                            {
+                                                disabled.Add(available);
+                                            }
+                                        }
+
+                                        // Subscribe to everything - we don't expect too much traffic
+                                        // This may need to change later
+                                        subscriptionsRequest = new NotificationRequest(
+                                            enabled: enabled.ToArray(),
+                                            disabled: disabled.ToArray()
+                                        );
+
+                                        this.websocket.Send(subscriptionsRequest.Serialized);
                                     }
                                     else
                                     {
-                                        disabled.Add(available);
+                                        bool newInitialization = !this.IsInitialized;
+                                        this.IsInitialized = true;
+                                        if (newInitialization)
+                                        {
+                                            try
+                                            {
+                                                this.OnInitialized?.Invoke(this);
+                                            }
+                                            catch
+                                            {
+                                                // Swallow handler errors
+                                            }
+                                        }
                                     }
                                 }
-
-                                // Subscribe to everything - we don't expect too much traffic
-                                // This may need to change later
-                                subscriptionsRequest = new NotificationRequest(
-                                    enabled: enabled.ToArray(),
-                                    disabled: disabled.ToArray()
-                                );
-
-                                this.websocket.Send(subscriptionsRequest.Serialized);
-                            }
-                            else
-                            {
-                                bool newInitialization = !this.IsInitialized;
-                                this.IsInitialized = true;
-                                if (newInitialization)
+                                else
                                 {
+                                    // This is a notification
+                                    NotificationObject notification =
+                                        JsonSerializer.Deserialize<NotificationObject>(
+                                            message.Text
+                                        );
                                     try
                                     {
-                                        this.OnInitialized?.Invoke(this);
+                                        this.OnNotification?.Invoke(
+                                            this,
+                                            notification.Method,
+                                            notification.Version,
+                                            JsonSerializer.Serialize(notification.Params)
+                                        );
                                     }
                                     catch
                                     {
                                         // Swallow handler errors
                                     }
                                 }
-                            }
+                            });
                         }
-                        else
-                        {
-                            // This is a notification
-                            NotificationObject notification = JsonSerializer.Deserialize<NotificationObject>(message.Text);
-                            try
-                            {
-                                this.OnNotification?.Invoke(this, notification.Method, notification.Version, JsonSerializer.Serialize(notification.Params));
-                            }
-                            catch
-                            {
-                                // Swallow handler errors
-                            }
-                        }
-                    });
-                });
+                    );
 
                 await this.websocket.Start();
                 initialSubscribe();

@@ -19,7 +19,8 @@ namespace SonyAudioControlApi
         /// If this is null or "" is set, it means all sources for the mode.
         /// </param>
         public async Task<PlaybackModeSettingsResult[]> GetPlaybackModeSettingsAsync(
-            PlaybackModeSettingsResult.PlaybackTarget target = PlaybackModeSettingsResult.PlaybackTarget.AllTargets,
+            PlaybackModeSettingsResult.PlaybackTarget target =
+                PlaybackModeSettingsResult.PlaybackTarget.AllTargets,
             string uri = null
         )
         {

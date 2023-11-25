@@ -17,7 +17,9 @@ namespace SonyAudioControlApi
         /// <remarks>
         /// Only extInput:* sources have types implemented.
         /// </remarks>
-        public async Task<PlayingContentInfoResult[]> GetPlayingContentInfoAsync(string output = null)
+        public async Task<PlayingContentInfoResult[]> GetPlayingContentInfoAsync(
+            string output = null
+        )
         {
             return await this.makeRequestAsync<PlayingContentInfoResult[]>(
                 ApiLib.AvContent,
@@ -36,7 +38,8 @@ namespace SonyAudioControlApi
 
     public sealed class PlayingContentInfoResult
     {
-        public class PlayingContentStateInfo {
+        public class PlayingContentStateInfo
+        {
             [JsonEnumConverter]
             public enum PlayingContentState
             {

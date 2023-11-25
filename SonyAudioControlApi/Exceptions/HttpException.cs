@@ -4,7 +4,5 @@ using System.Text;
 
 namespace SonyAudioControlApi.Exceptions
 {
-    class HttpException : Exception
-    {
-    }
+    class HttpException : Exception { }
 }

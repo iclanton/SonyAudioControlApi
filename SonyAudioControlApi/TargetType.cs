@@ -4,7 +4,6 @@ using System.Text;
 
 namespace SonyAudioControlApi
 {
-
     [JsonEnumConverter]
     public enum TargetType
     {

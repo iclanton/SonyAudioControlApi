@@ -101,5 +101,4 @@ namespace SonyAudioControlApi
         [JsonPropertyName("volume")]
         public int Volume { get; set; }
     }
-
 }

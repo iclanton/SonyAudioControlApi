@@ -58,10 +58,7 @@ namespace SonyAudioControlApi
             [JsonIgnore]
             public string Serialized
             {
-                get
-                {
-                    return JsonSerializer.Serialize(this);
-                }
+                get { return JsonSerializer.Serialize(this); }
             }
         }
 
@@ -81,7 +78,12 @@ namespace SonyAudioControlApi
             public TResponse Result { get; set; }
         }
 
-        private async Task<TResult> makeRequestAsync<TResult>(ApiLib lib, ApiVersion version, string method, object @params = null)
+        private async Task<TResult> makeRequestAsync<TResult>(
+            ApiLib lib,
+            ApiVersion version,
+            string method,
+            object @params = null
+        )
         {
             if (this.Device is null)
             {
@@ -98,13 +100,19 @@ namespace SonyAudioControlApi
             string libName = Utilities.GetApiLibName(lib);
             string requestUrl = $"http://{this.Device.Hostname}:{this.Device.Port}/sony/{libName}";
 
-            HttpContent httpContent = new StringContent(requestObject.Serialized, Encoding.UTF8, "application/json");
+            HttpContent httpContent = new StringContent(
+                requestObject.Serialized,
+                Encoding.UTF8,
+                "application/json"
+            );
             using (HttpClient httpClient = new HttpClient())
             {
                 HttpResponseMessage response = await httpClient.PostAsync(requestUrl, httpContent);
                 if (response.IsSuccessStatusCode)
                 {
-                    ResponseObject<TResult> responseObject = JsonSerializer.Deserialize<ResponseObject<TResult>>(await response.Content.ReadAsStringAsync());
+                    ResponseObject<TResult> responseObject = JsonSerializer.Deserialize<
+                        ResponseObject<TResult>
+                    >(await response.Content.ReadAsStringAsync());
                     if (responseObject.Error != null)
                     {
                         // TODO - handle

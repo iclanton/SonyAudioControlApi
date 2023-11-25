@@ -98,7 +98,5 @@ namespace SonyAudioControlApi
         /// </summary>
         [JsonPropertyName("serverName")]
         public string ServerName { get; set; }
-
     }
 }
-
